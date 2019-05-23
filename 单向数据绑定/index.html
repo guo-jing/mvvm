@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<div id="app">
+    我有一个{{color}}色的子元素
+    <div>
+        <div>
+            我是一个{{size}}{{color}}色的子元素，我自己也有一个子元素
+            <div>
+                我是子元素的子元素{{name}}，{{greeting}}
+            </div>
+            <div>我是另外一个子元素，{{greeting}}</div>
+        </div>
+    </div>
+    <div>{{start}}和{{end}}</div>
+    <button>点我改变绑定数据</button>
+</div>
+<script src="main.js"></script>
+</body>
+</html>
