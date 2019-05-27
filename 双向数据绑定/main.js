@@ -36,10 +36,12 @@ class Mvvm {
     // 1.查找参数 node 中的所有包含 {{xxx}} 格式的子节点，将子节点中的 {{xxx}} 替换成参数 data 中对应的值后，赋值回子节点
     // 2.对于所有包含 {{xxx}} 格式的子节点，为其创建一个 Observer 实例，并且根据实例的 template 中绑定的数据来订阅对应的主题
     // 3.对于 node 中不是 text 类型的子节点，继续执行 searchBindData() 方法
+    // 4.处理 v-model 指令
     searchBindData(node, data, subjects) {
         let reg = /{{[a-zA-Z$_][a-zA-Z\d_]*}}/g;
         let childNodes = node.childNodes;
         childNodes.forEach(node => {
+            // 子节点类型是文本
             if (node.nodeType === 3) {
                 let matches = node.data.match(reg);
                 if (matches !== null) {
@@ -55,12 +57,15 @@ class Mvvm {
                     node.data = replacementResult;
                 }
             }
+            // 子节点类型是节点
             if (node.nodeType === 1) {
                 let attrArray = [...node.attributes];
                 attrArray.forEach(attr => {
+                    // 如果属性名是指令，并且属性值是 data 的一个 key
                     if (Mvvm.isDirective(attr.name) && Object.keys(data).includes(attr.value)) {
                         let observer = new Observer(node, node.data, 'updateVModel');
                         observer.subscribe(subjects[attr.value]);
+                        observer.update(node, this.data[attr.value]);
                         let methodName = attr.name;
                         let index = 0;
                         methodName = 'bind' + methodName.replace(/^(\w)|-([a-z])/g,
@@ -73,14 +78,16 @@ class Mvvm {
         });
     }
 
+    // 判断是不是指令，目前只有 v-model
     static isDirective(str) {
         return ['v-model'].includes(str);
     }
 
+    // 监听 v-model 改变
     bindVModel(node, key) {
         node.addEventListener('input', () => {
             this.data[key] = node.value;
-        })
+        });
     }
 
 }
@@ -123,11 +130,12 @@ class Observer {
         subject.addObserver(this);
     }
 
-    // 当主题改变时，更新当前实例的 data，然后替换 this.template 中的所有 {{xxx}} 并赋值给 this.node.data
+    // 当主题改变时执行更新
     update(key, value) {
         this[this.updateFunction](key, value);
     }
 
+    // 更新当前实例的 data，然后替换 this.template 中的所有 {{xxx}} 并赋值给 this.node.data
     updateText(key, value) {
         let reg = /{{[a-zA-Z$_][a-zA-Z\d_]*}}/g;
         this.data[key] = value;
@@ -141,6 +149,7 @@ class Observer {
         });
     }
 
+    // 更新 input 元素
     updateVModel(key, value) {
         this.node.value = value;
     }
@@ -152,10 +161,16 @@ class Observer {
 let model = new Mvvm({
     element: '#app',
     data: {
-        name: '杰诺斯'
+        name1: '杰诺斯',
+        name2: '音速索尼克',
+        name3: '深海王'
     }
 });
 
-let resetButton = document.querySelector('.reset');
-resetButton.addEventListener('click', () => model.data.name = '杰诺斯');
+let resetButton1 = document.querySelector('.reset1');
+resetButton1.addEventListener('click', () => model.data.name1 = '杰诺斯');
+let resetButton2 = document.querySelector('.reset2');
+resetButton2.addEventListener('click', () => model.data.name2 = '音速索尼克');
+let resetButton3 = document.querySelector('.reset3');
+resetButton3.addEventListener('click', () => model.data.name3 = '深海王');
 
